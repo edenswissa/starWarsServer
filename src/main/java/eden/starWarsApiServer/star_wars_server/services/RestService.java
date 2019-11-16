@@ -12,25 +12,22 @@ import java.util.Map;
 
 public class RestService {
     public static ResponseEntity<String> get(String url, @Nullable Map<String,Object> headers) {
-        try {
-            RestTemplate restTemplate = new RestTemplate();
-            HttpHeaders httpHeaders = new HttpHeaders();
-            ResponseEntity<String> responseEntity = null;
-            if(headers != null) {
-                for (String key : headers.keySet()) {
-                    httpHeaders.add(key, String.valueOf(headers.get(key)));
-                }
-            }
-            HttpEntity<String> httpEntity = new HttpEntity<String>(httpHeaders);
-            responseEntity = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
-            return responseEntity;
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            System.out.println("get for url: " +url+ " FAILED cause: " +e.getMessage());
-            return new ResponseEntity<String>(e.getStatusText(),e.getStatusCode());
-        }
+        return rest(HttpMethod.GET,url,headers,null);
     }
 
-    public static ResponseEntity<String> post(String url,@Nullable Map<String,Object> headers, @NonNull JsonObject body) {
+    public static ResponseEntity<String> post(String url,@Nullable Map<String,Object> headers, @NonNull String body) {
+        return rest(HttpMethod.POST,url,headers,body);
+    }
+
+    public static ResponseEntity<String> put(String url,@Nullable Map<String,Object> headers, @NonNull String body) {
+        return rest(HttpMethod.PUT,url,headers,body);
+    }
+
+    public static ResponseEntity<String> patch(String url,@Nullable Map<String,Object> headers, @NonNull String body) {
+        return rest(HttpMethod.PATCH,url,headers,body);
+    }
+
+    private static ResponseEntity<String> rest (HttpMethod httpMethod,String url,@Nullable Map<String,Object> headers, @Nullable String body) {
         try {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders httpHeaders = new HttpHeaders();
@@ -40,11 +37,11 @@ public class RestService {
                 }
             }
             httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<String> httpEntity = new HttpEntity<String>(body.toString(),httpHeaders);
-            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, httpEntity, String.class);
+            HttpEntity<String> httpEntity = new HttpEntity<String>(body,httpHeaders);
+            ResponseEntity<String> responseEntity = restTemplate.exchange(url, httpMethod, httpEntity, String.class);
             return responseEntity;
         } catch (HttpClientErrorException e) {
-            System.out.println("post for url: " +url+ " FAILED cause: " +e.getMessage());
+            System.out.println(httpMethod.toString() + " for url: " +url+ " FAILED cause: " +e.getMessage());
             return new ResponseEntity<String>(e.getStatusText(),e.getStatusCode());
         }
     }
